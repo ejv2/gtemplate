@@ -51,6 +51,27 @@ func TestSanitizePath(t *testing.T) {
 	}
 }
 
+func TestVerifyDirectory(t *testing.T) {
+	dirs := []struct{
+		path string
+		valid bool
+	}{
+		{"testing", true},
+		{"testing/", true},
+		{"testing/public", true},
+		{"notexist", false},
+		{"testing/notexist", false},
+		{"testing/public/index.gohtml", false},
+	}
+
+	for _, elem := range dirs {
+		v := verifyDirectory(elem.path)
+		if v != elem.valid {
+			t.Errorf("verifyDirectory %q: got %v, expected %v", elem.path, v, elem.valid)
+		}
+	}
+}
+
 func TestServer(t *testing.T) {
 	broker := Broker{}
 
