@@ -54,7 +54,11 @@ func TestSanitizePath(t *testing.T) {
 func TestServer(t *testing.T) {
 	broker := Broker{}
 
-	hndl := NewServer(DocumentRoot, broker)
+	hndl, err := NewServer(DocumentRoot, broker)
+	if err != nil {
+		t.Fatalf("Server init failed: %s", err.Error())
+	}
+
 	srv := http.Server{
 		Addr:    ":" + Port,
 		Handler: hndl,
@@ -62,7 +66,7 @@ func TestServer(t *testing.T) {
 
 	t.Log("Server starting")
 	go killServer(&srv)
-	err := srv.ListenAndServe()
+	err = srv.ListenAndServe()
 	if err != http.ErrServerClosed {
 		t.Fatalf("Server exited unexpectedly: %s", err)
 	}
@@ -119,7 +123,12 @@ func serveConcurrent(t *testing.T, csrv chan http.Server, wait sync.WaitGroup) {
 
 	broker := Broker{}
 
-	hndl := NewServer(DocumentRoot, broker)
+	hndl, err := NewServer(DocumentRoot, broker)
+	if err != nil {
+		t.Errorf("Server init failed: %s", err.Error())
+		return
+	}
+
 	srv := http.Server{
 		Addr:    ":" + Port,
 		Handler: hndl,
@@ -128,7 +137,7 @@ func serveConcurrent(t *testing.T, csrv chan http.Server, wait sync.WaitGroup) {
 	go func() { csrv <- srv }()
 
 	t.Log("Concurrent server starting")
-	err := srv.ListenAndServe()
+	err = srv.ListenAndServe()
 	if err != http.ErrServerClosed {
 		t.Errorf("Server exited unexpectedly: %s", err)
 	}
