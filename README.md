@@ -60,7 +60,11 @@ func main() {
 
 	// Returns a new plain handler, without any include
 	// templates
-	hndl := gtemplate.NewServer(DocumentRoot, broker)
+	hndl, err := gtemplate.NewServer(DocumentRoot, broker)
+	if err != nil {
+		panic(err)
+	}
+
 	srv := http.Server{
 		Addr:    ":" + Port,
 		Handler: hndl,
@@ -68,7 +72,7 @@ func main() {
 
 	// The rest of the server is a standard net/http.Server
 	// instance
-	err := srv.ListenAndServe()
+	err = srv.ListenAndServe()
 	if err != http.ErrServerClosed {
 		log.Fatalf("Server exited unexpectedly: %s", err.Error())
 	}
