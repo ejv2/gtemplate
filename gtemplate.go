@@ -15,8 +15,8 @@ import (
 
 // TemplateServer returned errors
 var (
-	ErrIncludesNotExist = errors.New("gtemplate: includes: no such directory")
-	ErrIncludesNotDir   = errors.New("gtemplate: includes: not a directory")
+	ErrRootInvalid      = errors.New("gtemplate: root: invalid root directory")
+	ErrIncludesInvalid  = errors.New("gtemplate: includes: invalid includes directory")
 	ErrAlreadyParsed    = errors.New("gtemplate: attempted to re-parse for path")
 )
 
@@ -54,14 +54,26 @@ func sanitizePath(p string) string {
 	return path.Clean(p)
 }
 
+// verifyDirectory checks if a path exists and is a directory
+func verifyDirectory(dir string) bool {
+	info, err := os.Stat(dir)
+	if err != nil {
+		return false
+	}
+
+	if !info.IsDir() {
+		return false
+	}
+
+	return true
+}
+
 // loadIncludes traverses and loads any potential include templates
 // from the includeRoot at path
 func (srv *TemplateServer) loadIncludes(path string) error {
 	entries, err := os.ReadDir(path)
-	if os.IsNotExist(err) {
-		return ErrIncludesNotExist
-	} else if errors.Is(err, os.ErrInvalid) {
-		return ErrIncludesNotDir
+	if os.IsNotExist(err) || errors.Is(err, os.ErrInvalid) {
+		return ErrIncludesInvalid
 	}
 
 	for _, elem := range entries {
@@ -140,14 +152,18 @@ func (srv *TemplateServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // NewServer instantiates a new TemplateServer instance which can be
 // used with http.Server as a handler
-func NewServer(root string, data DataBroker) http.Handler {
+func NewServer(root string, data DataBroker) (http.Handler, error) {
+	if !verifyDirectory(root) {
+		return nil, ErrRootInvalid
+	}
+
 	srv := &TemplateServer{
 		broker:    data,
 		templates: make(map[string]*template.Template),
 		root:      root,
 	}
 
-	return srv
+	return srv, nil
 }
 
 // NewIncludesServer instantiates a new TemplateServer instance with
