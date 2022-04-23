@@ -54,6 +54,8 @@ func sanitizePath(p string) string {
 	return path.Clean(p)
 }
 
+// loadIncludes traverses and loads any potential include templates
+// from the includeRoot at path
 func (srv *TemplateServer) loadIncludes(path string) error {
 	entries, err := os.ReadDir(path)
 	if os.IsNotExist(err) {
@@ -78,6 +80,8 @@ func (srv *TemplateServer) loadIncludes(path string) error {
 	return nil
 }
 
+// loadTemplate loads and caches (thread safely) a template file located
+// at path
 func (srv *TemplateServer) loadTemplate(path string) error {
 	files := make([]string, 0, len(srv.includes)+1)
 	files = append(files, srv.includes...)
@@ -101,6 +105,9 @@ func (srv *TemplateServer) loadTemplate(path string) error {
 	return nil
 }
 
+// ServeHTTP loads, parses (if not already cached) and serves a template
+// specified in the requests URL. Can be safely called in parallel, as is
+// done by http.Server
 func (srv *TemplateServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/" {
 		r.URL.Path = "/index.gohtml"
@@ -143,6 +150,11 @@ func NewServer(root string, data DataBroker) http.Handler {
 	return srv
 }
 
+// NewIncludesServer instantiates a new TemplateServer instance with
+// includes support, meaning that templates in includeRoot can be used
+// by any other executing template. Templates in the root still cannot
+// execute each other. The instance can be used with http.Server as a
+// handler. Error is returned if root or includeRoot are invalid directories
 func NewIncludesServer(root string, includeRoot string, data DataBroker) (http.Handler, error) {
 	srv := &TemplateServer{
 		broker:    data,
