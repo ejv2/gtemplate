@@ -52,8 +52,8 @@ func TestSanitizePath(t *testing.T) {
 }
 
 func TestVerifyDirectory(t *testing.T) {
-	dirs := []struct{
-		path string
+	dirs := []struct {
+		path  string
 		valid bool
 	}{
 		{"testing", true},
@@ -139,9 +139,7 @@ func fetchConcurrent(t *testing.T, wait sync.WaitGroup, url string) {
 	wait.Done()
 }
 
-func serveConcurrent(t *testing.T, csrv chan http.Server, wait sync.WaitGroup) {
-	wait.Add(1)
-
+func serveConcurrent(t *testing.T, wait sync.WaitGroup) {
 	broker := Broker{}
 
 	hndl, err := NewServer(DocumentRoot, broker)
@@ -155,30 +153,23 @@ func serveConcurrent(t *testing.T, csrv chan http.Server, wait sync.WaitGroup) {
 		Handler: hndl,
 	}
 
-	go func() { csrv <- srv }()
-
 	t.Log("Concurrent server starting")
 	err = srv.ListenAndServe()
 	if err != http.ErrServerClosed {
 		t.Errorf("Server exited unexpectedly: %s", err)
 	}
-
-	wait.Done()
 }
 
 func TestConcurrent(t *testing.T) {
 	p, count := "http://localhost:"+Port+"/test.gohtml", runtime.GOMAXPROCS(0)
 	wait := sync.WaitGroup{}
-	c, srv := make(chan http.Server), http.Server{}
 
-	go serveConcurrent(t, c, wait)
-	srv = <-c
+	go serveConcurrent(t, wait)
 
 	for i := 0; i < count; i++ {
 		t.Logf("spawned getter %d", i)
 		go fetchConcurrent(t, wait, p)
 	}
 
-	srv.Shutdown(context.Background())
 	wait.Wait()
 }
