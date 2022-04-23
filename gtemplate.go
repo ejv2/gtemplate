@@ -1,5 +1,5 @@
-// Copyright 2022 Ethan Marshall
-// Licensed under the ISC licence - see COPYING
+// Copyright 2022 Ethan Marshall.
+// Licensed under the ISC licence - see COPYING.
 package gtemplate
 
 import (
