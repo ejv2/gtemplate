@@ -14,9 +14,9 @@ import (
 
 // TemplateServer returned errors
 var (
-	ErrRootInvalid      = errors.New("gtemplate: root: invalid root directory")
-	ErrIncludesInvalid  = errors.New("gtemplate: includes: invalid includes directory")
-	ErrAlreadyParsed    = errors.New("gtemplate: attempted to re-parse for path")
+	ErrRootInvalid     = errors.New("gtemplate: root: invalid root directory")
+	ErrIncludesInvalid = errors.New("gtemplate: includes: invalid includes directory")
+	ErrAlreadyParsed   = errors.New("gtemplate: attempted to re-parse for path")
 )
 
 // A DataBroker is responsible for mapping data to bind to a
