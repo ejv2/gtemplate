@@ -4,7 +4,6 @@ package gtemplate
 
 import (
 	"errors"
-	"fmt"
 	"html/template"
 	"net/http"
 	"os"
@@ -134,8 +133,7 @@ func (srv *TemplateServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		srv.mut.RLock()
 
 		if err != nil {
-			w.WriteHeader(404)
-			fmt.Fprintln(w, "404 not found")
+			http.Error(w, "404 not found", http.StatusNotFound)
 			return
 		}
 	}
@@ -144,10 +142,8 @@ func (srv *TemplateServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	err := srv.templates[p].ExecuteTemplate(w, p[1:], data)
 
 	if err != nil {
-		w.WriteHeader(500)
-		fmt.Fprintf(w, "500 internal error\n\t%s", err.Error())
+		http.Error(w, "500 internal error\n\t"+err.Error(), http.StatusInternalServerError)
 	}
-
 }
 
 // NewServer instantiates a new TemplateServer instance which can be
