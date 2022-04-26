@@ -18,9 +18,9 @@ const (
 	IncludesRoot = "testing/templates/"
 )
 
-type Broker struct{}
+type TestBroker struct{}
 
-func (broker Broker) Data(path string) map[string]interface{} {
+func (broker TestBroker) Data(path string) map[string]interface{} {
 	return map[string]interface{}{
 		"title":  "My Page",
 		"author": "Ethan Marshall",
@@ -75,7 +75,7 @@ func TestVerifyDirectory(t *testing.T) {
 }
 
 func TestServer(t *testing.T) {
-	broker := Broker{}
+	broker := TestBroker{}
 
 	hndl, err := NewServer(DocumentRoot, broker)
 	if err != nil {
@@ -97,7 +97,7 @@ func TestServer(t *testing.T) {
 }
 
 func TestTemplateServer(t *testing.T) {
-	broker := Broker{}
+	broker := TestBroker{}
 
 	hndl, err := NewIncludesServer(DocumentRoot, IncludesRoot, broker)
 	if err != nil {
@@ -116,6 +116,41 @@ func TestTemplateServer(t *testing.T) {
 		t.Fatalf("Server exited unexpectedly: %s", err)
 	}
 	t.Log("Server gracefully terminating")
+}
+
+func TestDefaultBroker(t *testing.T) {
+	broker := TestBroker{}
+	DefaultDataBroker.Handle("/", broker)
+	DefaultDataBroker.HandleData("/sub/", map[string]interface{}{
+		"title":  "Data bound through the sub directory",
+		"author": "github.com/ethanv2/gtemplate",
+		"date":   time.Time{},
+	})
+	DefaultDataBroker.HandleFunc("/temp.gohtml", func(path string) (map[string]interface{}, error) {
+		return map[string]interface{}{
+			"title":  "If you can see this, it works!",
+			"author": "ethan_v2",
+			"date":   time.Now().Add(24 * time.Hour),
+		}, nil
+	})
+
+	hndl, err := NewIncludesServer(DocumentRoot, IncludesRoot, DefaultDataBroker)
+	if err != nil {
+		t.Errorf("Server init failed: %s", err.Error())
+		return
+	}
+
+	srv := http.Server{
+		Addr:    ":" + Port,
+		Handler: hndl,
+	}
+
+	t.Log("DefaultDataBroker server starting")
+	go killServer(&srv)
+	err = srv.ListenAndServe()
+	if err != http.ErrServerClosed {
+		t.Errorf("Server exited unexpectedly: %s", err)
+	}
 }
 
 func fetchConcurrent(t *testing.T, wait sync.WaitGroup, url string) {
@@ -142,7 +177,7 @@ func fetchConcurrent(t *testing.T, wait sync.WaitGroup, url string) {
 }
 
 func serveConcurrent(t *testing.T, wait sync.WaitGroup) {
-	broker := Broker{}
+	broker := TestBroker{}
 
 	hndl, err := NewServer(DocumentRoot, broker)
 	if err != nil {
