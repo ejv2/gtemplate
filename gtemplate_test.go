@@ -120,13 +120,13 @@ func TestTemplateServer(t *testing.T) {
 
 func TestDefaultBroker(t *testing.T) {
 	broker := TestBroker{}
-	DefaultDataBroker.Handle("/", broker)
-	DefaultDataBroker.HandleData("/sub/", map[string]interface{}{
+	Handle("/", broker)
+	HandleData("/sub/", map[string]interface{}{
 		"title":  "Data bound through the sub directory",
 		"author": "github.com/ethanv2/gtemplate",
 		"date":   time.Time{},
 	})
-	DefaultDataBroker.HandleFunc("/temp.gohtml", func(path string) (map[string]interface{}, error) {
+	HandleFunc("/temp.gohtml", func(path string) (map[string]interface{}, error) {
 		return map[string]interface{}{
 			"title":  "If you can see this, it works!",
 			"author": "ethan_v2",
@@ -134,7 +134,7 @@ func TestDefaultBroker(t *testing.T) {
 		}, nil
 	})
 
-	hndl, err := NewIncludesServer(DocumentRoot, IncludesRoot, DefaultDataBroker)
+	hndl, err := NewIncludesServer(DocumentRoot, IncludesRoot, nil)
 	if err != nil {
 		t.Errorf("Server init failed: %s", err.Error())
 		return
