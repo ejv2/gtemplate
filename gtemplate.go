@@ -94,6 +94,10 @@ func (srv *TemplateServer) loadIncludes(path string) error {
 // loadTemplate loads and caches (thread safely) a template file located
 // at path
 func (srv *TemplateServer) loadTemplate(path string) error {
+	if srv.templates == nil {
+		srv.templates = make(map[string]*template.Template)
+	}
+
 	files := make([]string, 0, len(srv.includes)+1)
 	files = append(files, srv.includes...)
 	files = append(files, filepath.Join(srv.root, path))
