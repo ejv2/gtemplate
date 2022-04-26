@@ -248,3 +248,21 @@ func (b *Broker) HandleFunc(pattern string, handler BrokerFunc) {
 func (b *Broker) HandleData(pattern string, handler map[string]interface{}) {
 	b.registerHandler(pattern, ConstHandler, handler)
 }
+
+// Handle registers a handler for DefaultDataBroker.
+// See documentation for DataBroker.Handle
+func Handle(pattern string, broker DataBroker) {
+	DefaultDataBroker.Handle(pattern, broker)
+}
+
+// HandleFunc registers a function handler for DefaultDataBroker.
+// See documentation for DataBroker.HandleFunc
+func HandleFunc(pattern string, handler BrokerFunc) {
+	DefaultDataBroker.HandleFunc(pattern, handler)
+}
+
+// HandleData registers a function handler for DefaultDataBroker.
+// See documentation for DataBroker.HandleData
+func HandleData(pattern string, handler map[string]interface{}) {
+	DefaultDataBroker.HandleData(pattern, handler)
+}
