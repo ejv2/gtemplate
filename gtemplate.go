@@ -152,6 +152,9 @@ func NewServer(root string, data DataBroker) (http.Handler, error) {
 	if !verifyDirectory(root) {
 		return nil, ErrRootInvalid
 	}
+	if data == nil {
+		data = DefaultDataBroker
+	}
 
 	srv := &TemplateServer{
 		broker:    data,
@@ -168,6 +171,10 @@ func NewServer(root string, data DataBroker) (http.Handler, error) {
 // execute each other. The instance can be used with http.Server as a
 // handler. Error is returned if root or includeRoot are invalid directories
 func NewIncludesServer(root string, includeRoot string, data DataBroker) (http.Handler, error) {
+	if data == nil {
+		data = DefaultDataBroker
+	}
+
 	srv := &TemplateServer{
 		broker:    data,
 		templates: make(map[string]*template.Template),
