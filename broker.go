@@ -226,14 +226,25 @@ func (b *Broker) registerFile(pattern string, entry brokerEntry) {
 	b.reg[dir][pattern] = entry
 }
 
+// Handle registers a DataBroker to handle data requests for a route.
+// Data requests are passed verbatim to this handler unchanged. What happens
+// from there is not our business.
+// Handle panics if broker is nil or if pattern has already been registered.
 func (b *Broker) Handle(pattern string, broker DataBroker) {
 	b.registerHandler(pattern, BrokerHandler, broker)
 }
 
+// HandleFunc registers a function which will be called to handle data
+// requests for a route. See documentation for BrokerFunc.
+// HandleFunc panics if handler is nil or if pattern has already been registered.
 func (b *Broker) HandleFunc(pattern string, handler BrokerFunc) {
 	b.registerHandler(pattern, FuncHandler, handler)
 }
 
+// HandleData registers a constant map which will be returned on requests for
+// data for a route. The map will be accessed concurrently and must not be
+// changed during execution. The best way to do this is to use a map literal.
+// HandleData panics if handler is nil or if pattern has already bee registered.
 func (b *Broker) HandleData(pattern string, handler map[string]interface{}) {
 	b.registerHandler(pattern, ConstHandler, handler)
 }
