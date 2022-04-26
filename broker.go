@@ -35,14 +35,11 @@ var DefaultDataBroker = NewBroker()
 // handler. See documentation for http.ServeMux for details on pattern
 // matching.
 type Broker struct {
-	mu  sync.RWMutex
-	reg map[string][]brokerEntry // A map of directories with path entries
+	mu  sync.RWMutex                      // protects reg
+	reg map[string]map[string]brokerEntry // a map of directories with path entries
 }
 
 type brokerEntry struct {
-	// Full original path of handler
-	path string
-
 	// Type of entry (see type constants above)
 	class int
 
@@ -109,10 +106,11 @@ func (b *Broker) lookupHandler(pattern string) (brokerEntry, bool) {
 	// Is a directory
 	if pattern[len(pattern)-1] == '/' {
 		if e, ok := b.reg[pattern]; ok {
-			for _, elem := range e {
-				if elem.path == pattern || elem.path == path.Join(elem.path, DirectoryIndex) {
-					return elem, true
-				}
+			if s, ok := e[pattern]; ok {
+				return s, true
+			}
+			if s, ok := e[path.Join(pattern, DirectoryIndex)]; ok {
+				return s, true
 			}
 		}
 	} else {
@@ -121,10 +119,8 @@ func (b *Broker) lookupHandler(pattern string) (brokerEntry, bool) {
 			// We have a file, so the basename will be stripped first iteration
 			comp = stringBacktrace(comp, "/")
 			if e, ok := b.reg[comp]; ok {
-				for _, elem := range e {
-					if elem.path == pattern {
-						return elem, true
-					}
+				if s, ok := e[pattern]; ok {
+					return s, true
 				}
 
 				// No match for sub-path, return dir handler
@@ -137,9 +133,7 @@ func (b *Broker) lookupHandler(pattern string) (brokerEntry, bool) {
 	}
 
 	// No match found whatsoever
-	return brokerEntry{
-		class: NilHandler,
-	}, false
+	return brokerEntry{}, false
 }
 
 func (b *Broker) registerHandler(pattern string, class int, handler interface{}) {
@@ -154,12 +148,11 @@ func (b *Broker) registerHandler(pattern string, class int, handler interface{})
 	}
 
 	if b.reg == nil {
-		b.reg = make(map[string][]brokerEntry)
-		b.reg["/"] = make([]brokerEntry, 0)
+		b.reg = make(map[string]map[string]brokerEntry)
+		b.reg["/"] = make(map[string]brokerEntry)
 	}
 
 	entry := brokerEntry{
-		path:  pattern,
 		class: class,
 	}
 	switch class {
@@ -198,26 +191,20 @@ func (b *Broker) registerDirectory(pattern string, entry brokerEntry) {
 	// Check for duplicates, then insert if all ok
 	needIndex := true
 	if m, ok := b.reg[pattern]; ok {
-		for _, elem := range m {
-			if elem.path == pattern {
-				panic("gtemplate: broker: attempted to re-register directory")
-			}
-			if elem.path == path.Join(pattern, DirectoryIndex) {
-				needIndex = false
-			}
+		if _, ok := m[pattern]; ok {
+			panic("gtemplate: broker: attempted to re-register directory")
 		}
-
+		if _, ok := m[path.Join(pattern, DirectoryIndex)]; ok {
+			needIndex = false
+		}
 	} else {
-		b.reg[pattern] = make([]brokerEntry, 0, 2)
+		b.reg[pattern] = make(map[string]brokerEntry)
 	}
 
 	// Add default entries
-	b.reg[pattern] = append(b.reg[pattern], entry)
+	b.reg[pattern][pattern] = entry
 	if needIndex {
-		def := entry
-		def.path = path.Join(pattern, DirectoryIndex)
-
-		b.reg[pattern] = append(b.reg[pattern], def)
+		b.reg[pattern][path.Join(pattern, DirectoryIndex)] = entry
 	}
 }
 
@@ -229,17 +216,14 @@ func (b *Broker) registerFile(pattern string, entry brokerEntry) {
 	}
 
 	if m, ok := b.reg[dir]; ok {
-		for _, elem := range m {
-			if elem.path == pattern {
-				panic("gtemplate: broker: attempted to re-register file")
-			}
+		if _, ok := m[pattern]; ok {
+			panic("gtemplate: broker: attempted to re-register file")
 		}
-
-		b.reg[dir] = append(b.reg[dir], entry)
 	} else {
-		b.reg[dir] = make([]brokerEntry, 1)
-		b.reg[dir][0] = entry
+		b.reg[dir] = make(map[string]brokerEntry)
 	}
+
+	b.reg[dir][pattern] = entry
 }
 
 func (b *Broker) Handle(pattern string, broker DataBroker) {
