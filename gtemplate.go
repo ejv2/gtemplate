@@ -139,7 +139,7 @@ func (srv *TemplateServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := srv.broker.Data(p)
-	err := srv.templates[p].ExecuteTemplate(w, p[1:], data)
+	err := srv.templates[p].ExecuteTemplate(w, path.Base(p), data)
 
 	if err != nil {
 		http.Error(w, "500 internal error\n\t"+err.Error(), http.StatusInternalServerError)
