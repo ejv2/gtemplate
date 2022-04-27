@@ -118,41 +118,6 @@ func TestTemplateServer(t *testing.T) {
 	t.Log("Server gracefully terminating")
 }
 
-func TestDefaultBroker(t *testing.T) {
-	broker := TestBroker{}
-	Handle("/", broker)
-	HandleData("/sub/", map[string]interface{}{
-		"title":  "Data bound through the sub directory",
-		"author": "github.com/ethanv2/gtemplate",
-		"date":   time.Time{},
-	})
-	HandleFunc("/temp.gohtml", func(path string) (map[string]interface{}, error) {
-		return map[string]interface{}{
-			"title":  "If you can see this, it works!",
-			"author": "ethan_v2",
-			"date":   time.Now().Add(24 * time.Hour),
-		}, nil
-	})
-
-	hndl, err := NewIncludesServer(TestDocumentRoot, TestIncludesRoot, nil)
-	if err != nil {
-		t.Errorf("Server init failed: %s", err.Error())
-		return
-	}
-
-	srv := http.Server{
-		Addr:    ":" + TestPort,
-		Handler: hndl,
-	}
-
-	t.Log("DefaultDataBroker server starting")
-	go killServer(&srv)
-	err = srv.ListenAndServe()
-	if err != http.ErrServerClosed {
-		t.Errorf("Server exited unexpectedly: %s", err)
-	}
-}
-
 func fetchConcurrent(t *testing.T, wait sync.WaitGroup, url string) {
 	wait.Add(1)
 
