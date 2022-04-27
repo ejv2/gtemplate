@@ -13,9 +13,9 @@ import (
 )
 
 const (
-	Port         = "8080"
-	DocumentRoot = "testing/public/"
-	IncludesRoot = "testing/templates/"
+	TestPort         = "8080"
+	TestDocumentRoot = "testing/public/"
+	TestIncludesRoot = "testing/templates/"
 )
 
 type TestBroker struct{}
@@ -77,13 +77,13 @@ func TestVerifyDirectory(t *testing.T) {
 func TestServer(t *testing.T) {
 	broker := TestBroker{}
 
-	hndl, err := NewServer(DocumentRoot, broker)
+	hndl, err := NewServer(TestDocumentRoot, broker)
 	if err != nil {
 		t.Fatalf("Server init failed: %s", err.Error())
 	}
 
 	srv := http.Server{
-		Addr:    ":" + Port,
+		Addr:    ":" + TestPort,
 		Handler: hndl,
 	}
 
@@ -99,13 +99,13 @@ func TestServer(t *testing.T) {
 func TestTemplateServer(t *testing.T) {
 	broker := TestBroker{}
 
-	hndl, err := NewIncludesServer(DocumentRoot, IncludesRoot, broker)
+	hndl, err := NewIncludesServer(TestDocumentRoot, TestIncludesRoot, broker)
 	if err != nil {
 		t.Fatalf("Server start fail %s", err.Error())
 	}
 
 	srv := http.Server{
-		Addr:    ":" + Port,
+		Addr:    ":" + TestPort,
 		Handler: hndl,
 	}
 
@@ -134,14 +134,14 @@ func TestDefaultBroker(t *testing.T) {
 		}, nil
 	})
 
-	hndl, err := NewIncludesServer(DocumentRoot, IncludesRoot, nil)
+	hndl, err := NewIncludesServer(TestDocumentRoot, TestIncludesRoot, nil)
 	if err != nil {
 		t.Errorf("Server init failed: %s", err.Error())
 		return
 	}
 
 	srv := http.Server{
-		Addr:    ":" + Port,
+		Addr:    ":" + TestPort,
 		Handler: hndl,
 	}
 
@@ -179,14 +179,14 @@ func fetchConcurrent(t *testing.T, wait sync.WaitGroup, url string) {
 func serveConcurrent(t *testing.T, wait sync.WaitGroup) {
 	broker := TestBroker{}
 
-	hndl, err := NewServer(DocumentRoot, broker)
+	hndl, err := NewServer(TestDocumentRoot, broker)
 	if err != nil {
 		t.Errorf("Server init failed: %s", err.Error())
 		return
 	}
 
 	srv := http.Server{
-		Addr:    ":" + Port,
+		Addr:    ":" + TestPort,
 		Handler: hndl,
 	}
 
@@ -198,7 +198,7 @@ func serveConcurrent(t *testing.T, wait sync.WaitGroup) {
 }
 
 func TestConcurrent(t *testing.T) {
-	p, count := "http://localhost:"+Port+"/test.gohtml", runtime.GOMAXPROCS(0)
+	p, count := "http://localhost:"+TestPort+"/test.gohtml", runtime.GOMAXPROCS(0)
 	wait := sync.WaitGroup{}
 
 	go serveConcurrent(t, wait)
