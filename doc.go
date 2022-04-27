@@ -28,6 +28,30 @@ In these examples, "broker" is used as a substitute for a data broker,
 which is simply a type capable of supplying an arbitrary map of string
 keys to any type for usage in the template. In the test suite, an example
 of this handling is used to display a string, date and do a conditional
-template.
+template. A "DefaultDataBroker" is also provided, which allows for data
+to be bound to specific paths which can be handled. For example:
+
+	// Equivalent to gtemplate.DefaultDataBroker.HandleFunc.
+	// Registers a data handler function for a specific route.
+	gtemplate.HandleFunc("public/", func(path string) map[string]interface{} {
+		return map[string]interface{
+			"name": "example",
+			"time": time.Now(),
+			"items": [...]string{
+				"e",
+				"t",
+				"h",
+				"a",
+				"n",
+			}
+		}
+	})
+
+	// When a nil handler is passed, gtemplate.DefaultDataBroker is used
+	hndl, err := gtemplate.NewServer("public/", nil)
+	if err != nil {
+		panic(err)
+	}
+	http.ListenAndServe("localhost:8080", hndl)
 */
 package gtemplate
