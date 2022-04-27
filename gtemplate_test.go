@@ -5,8 +5,6 @@ package gtemplate
 import (
 	"context"
 	"net/http"
-	"runtime"
-	"sync"
 	"time"
 
 	"testing"
@@ -116,62 +114,4 @@ func TestTemplateServer(t *testing.T) {
 		t.Fatalf("Server exited unexpectedly: %s", err)
 	}
 	t.Log("Server gracefully terminating")
-}
-
-func fetchConcurrent(t *testing.T, wait sync.WaitGroup, url string) {
-	wait.Add(1)
-
-	b, err := http.Get(url)
-	if err != nil {
-		t.Errorf("unexpected request error: %s", err.Error())
-		return
-	} else if b.StatusCode != 200 {
-		t.Errorf("unexpected response code %d", b.StatusCode)
-		return
-	}
-
-	buf := make([]byte, 18)
-	_, err = b.Body.Read(buf)
-	if err != nil {
-		t.Errorf("unexpected request error: %s", err.Error())
-	} else if string(buf) != "should be returned" {
-		t.Errorf("incorrect body returned: %s", string(buf))
-	}
-
-	wait.Done()
-}
-
-func serveConcurrent(t *testing.T, wait sync.WaitGroup) {
-	broker := TestBroker{}
-
-	hndl, err := NewServer(TestDocumentRoot, broker)
-	if err != nil {
-		t.Errorf("Server init failed: %s", err.Error())
-		return
-	}
-
-	srv := http.Server{
-		Addr:    ":" + TestPort,
-		Handler: hndl,
-	}
-
-	t.Log("Concurrent server starting")
-	err = srv.ListenAndServe()
-	if err != http.ErrServerClosed {
-		t.Errorf("Server exited unexpectedly: %s", err)
-	}
-}
-
-func TestConcurrent(t *testing.T) {
-	p, count := "http://localhost:"+TestPort+"/test.gohtml", runtime.GOMAXPROCS(0)
-	wait := sync.WaitGroup{}
-
-	go serveConcurrent(t, wait)
-
-	for i := 0; i < count; i++ {
-		t.Logf("spawned getter %d", i)
-		go fetchConcurrent(t, wait, p)
-	}
-
-	wait.Wait()
 }
