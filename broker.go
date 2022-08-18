@@ -6,7 +6,7 @@ import (
 	"sync"
 )
 
-// Types of registered handler
+// Types of registered handler.
 const (
 	NilHandler    = iota // Default handler. Returns a nil map at all times
 	ConstHandler         // Returns the same map on each invocation
@@ -14,26 +14,25 @@ const (
 	BrokerHandler        // Passes path to separate handler and returns its return value
 )
 
-// Useful path constants
+// Useful path constants.
 const (
 	DirectoryIndex = "index.gohtml"
 )
 
-// BrokerFunc handles a request for data for a specific route
-// If error is non-nil, request will return a map with only one
-// entry "error" set to the error returned
+// BrokerFunc handles a request for data for a specific route. If error is
+// non-nil, request will return a map with only one entry "error" set to the
+// error returned.
 type BrokerFunc func(string) (map[string]interface{}, error)
 
-// Default data broker
-// See documentation for DefaultDataBroker
+// Default data broker.
+// See documentation for DefaultDataBroker.
 var DefaultDataBroker = NewBroker()
 
-// DefaultBroker is a scriptable request data handler.
-// It matches the URL of each incoming request against a list of registered
-// patterns and fetches the data (through whatever registered means) for
-// this specific route. It is designed to be analogous to the http.ServeMux
-// handler. See documentation for http.ServeMux for details on pattern
-// matching.
+// DefaultBroker is a scriptable request data handler. It matches the URL of
+// each incoming request against a list of registered patterns and fetches the
+// data (through whatever registered means) for this specific route. It is
+// designed to be analogous to the http.ServeMux handler. See documentation for
+// http.ServeMux for details on pattern matching.
 type Broker struct {
 	mu  sync.RWMutex                      // protects reg
 	reg map[string]map[string]brokerEntry // a map of directories with path entries
@@ -91,14 +90,15 @@ func (b *Broker) Data(path string) map[string]interface{} {
 // The algorithm to lookup is as follows:
 //
 // For directories:
-//	1) Lookup in the map
-//	2) If present, return the directory's root handler
-//	3) Else, return false
+//  1. Lookup in the map
+//  2. If present, return the directory's root handler
+//  3. Else, return false
+//
 // For files:
-//	1) Find the directory path (strip basename)
-//	2) For each component of directory (starting at longest), lookup in map
-//	3) If found for a component, first look for a match for whole file path
-//	4) If not found for entire file path, apply for directory instead
+//  1. Find the directory path (strip basename)
+//  2. For each component of directory (starting at longest), lookup in map
+//  3. If found for a component, first look for a match for whole file path
+//  4. If not found for entire file path, apply for directory instead
 func (b *Broker) lookupHandler(pattern string) (brokerEntry, bool) {
 	b.mu.RLock()
 	defer b.mu.RUnlock()
@@ -250,19 +250,19 @@ func (b *Broker) HandleData(pattern string, handler map[string]interface{}) {
 }
 
 // Handle registers a handler for DefaultDataBroker.
-// See documentation for DataBroker.Handle
+// See documentation for DataBroker.Handle.
 func Handle(pattern string, broker DataBroker) {
 	DefaultDataBroker.Handle(pattern, broker)
 }
 
 // HandleFunc registers a function handler for DefaultDataBroker.
-// See documentation for DataBroker.HandleFunc
+// See documentation for DataBroker.HandleFunc.
 func HandleFunc(pattern string, handler BrokerFunc) {
 	DefaultDataBroker.HandleFunc(pattern, handler)
 }
 
 // HandleData registers a function handler for DefaultDataBroker.
-// See documentation for DataBroker.HandleData
+// See documentation for DataBroker.HandleData.
 func HandleData(pattern string, handler map[string]interface{}) {
 	DefaultDataBroker.HandleData(pattern, handler)
 }

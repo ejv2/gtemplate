@@ -27,7 +27,7 @@ var (
 )
 
 // ReadAll is a less portable but more specific (and dependency-avoiding)
-// version of io.ReadAll
+// version of io.ReadAll.
 func ReadAll(f *os.File) (buf []byte, err error) {
 	b := make([]byte, 0, 512)
 	for {
@@ -47,8 +47,9 @@ func ReadAll(f *os.File) (buf []byte, err error) {
 }
 
 type Broker struct {
-	cache_mut sync.RWMutex
-	cache     map[string]map[string]interface{}
+	// Protects cache
+	mut   sync.RWMutex
+	cache map[string]map[string]interface{}
 }
 
 func (b *Broker) Data(path string) map[string]interface{} {
@@ -59,14 +60,14 @@ func (b *Broker) Data(path string) map[string]interface{} {
 	p := filepath.Join(*data, dfile)
 
 	// Check for cache hit - return early
-	b.cache_mut.RLock()
+	b.mut.RLock()
 	if val, ok := b.cache[p]; ok {
-		defer b.cache_mut.RUnlock()
+		defer b.mut.RUnlock()
 
 		state, remark = "success", "cache hit"
 		return val
 	}
-	b.cache_mut.RUnlock()
+	b.mut.RUnlock()
 
 	f, err := os.Open(p)
 	if err != nil {
@@ -87,13 +88,13 @@ func (b *Broker) Data(path string) map[string]interface{} {
 		return nil
 	}
 
-	b.cache_mut.Lock()
+	b.mut.Lock()
 	if b.cache == nil {
 		b.cache = make(map[string]map[string]interface{})
 	}
 
 	b.cache[p] = res
-	b.cache_mut.Unlock()
+	b.mut.Unlock()
 
 	// Yay!
 	state, remark = "success", "loaded datafile"

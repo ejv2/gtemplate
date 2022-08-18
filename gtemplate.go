@@ -12,7 +12,7 @@ import (
 	"sync"
 )
 
-// TemplateServer returned errors
+// TemplateServer returned errors.
 var (
 	ErrRootInvalid     = errors.New("gtemplate: root: invalid root directory")
 	ErrIncludesInvalid = errors.New("gtemplate: includes: invalid includes directory")
@@ -53,7 +53,7 @@ func sanitizePath(p string) string {
 	return path.Clean(p)
 }
 
-// verifyDirectory checks if a path exists and is a directory
+// verifyDirectory checks if a path exists and is a directory.
 func verifyDirectory(dir string) bool {
 	info, err := os.Stat(dir)
 	if err != nil {
@@ -68,7 +68,7 @@ func verifyDirectory(dir string) bool {
 }
 
 // loadIncludes traverses and loads any potential include templates
-// from the includeRoot at path
+// from the includeRoot at path.
 func (srv *TemplateServer) loadIncludes(path string) error {
 	entries, err := os.ReadDir(path)
 	if os.IsNotExist(err) || errors.Is(err, os.ErrInvalid) {
@@ -92,7 +92,7 @@ func (srv *TemplateServer) loadIncludes(path string) error {
 }
 
 // loadTemplate loads and caches (thread safely) a template file located
-// at path
+// at path.
 func (srv *TemplateServer) loadTemplate(path string) error {
 	if srv.templates == nil {
 		srv.templates = make(map[string]*template.Template)
@@ -122,7 +122,7 @@ func (srv *TemplateServer) loadTemplate(path string) error {
 
 // ServeHTTP loads, parses (if not already cached) and serves a template
 // specified in the requests URL. Can be safely called in parallel, as is
-// done by http.Server
+// done by http.Server.
 func (srv *TemplateServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/" {
 		r.URL.Path = "/index.gohtml"
@@ -151,7 +151,7 @@ func (srv *TemplateServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // NewServer instantiates a new TemplateServer instance which can be
-// used with http.Server as a handler
+// used with http.Server as a handler.
 func NewServer(root string, data DataBroker) (http.Handler, error) {
 	if !verifyDirectory(root) {
 		return nil, ErrRootInvalid
@@ -169,11 +169,11 @@ func NewServer(root string, data DataBroker) (http.Handler, error) {
 	return srv, nil
 }
 
-// NewIncludesServer instantiates a new TemplateServer instance with
-// includes support, meaning that templates in includeRoot can be used
-// by any other executing template. Templates in the root still cannot
-// execute each other. The instance can be used with http.Server as a
-// handler. Error is returned if root or includeRoot are invalid directories
+// NewIncludesServer instantiates a new TemplateServer instance with includes
+// support, meaning that templates in includeRoot can be used by any other
+// executing template. Templates in the root still cannot execute each other.
+// The instance can be used with http.Server as a handler. Error is returned if
+// root or includeRoot are invalid directories.
 func NewIncludesServer(root string, includeRoot string, data DataBroker) (http.Handler, error) {
 	if data == nil {
 		data = DefaultDataBroker
