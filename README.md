@@ -21,7 +21,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/ethanv2/gtemplate"
+	"github.com/ejv2/gtemplate"
 )
 
 const (
@@ -44,7 +44,7 @@ type Broker struct{}
 // in a struct. In this case, {{.Name}} or {{range .Relatives}}
 func (b Broker) Data(path string) map[string]interface{} {
 	return map[string]interface{}{
-		"Name": "ethanv2",
+		"Name": "ejv2",
 		"DOB": 2006,
 		"Relatives": [...]string{
 			"Dave",

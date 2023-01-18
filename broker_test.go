@@ -11,7 +11,7 @@ func TestDefaultBroker(t *testing.T) {
 	Handle("/", broker)
 	HandleData("/sub/", map[string]interface{}{
 		"title":  "Data bound through the sub directory",
-		"author": "github.com/ethanv2/gtemplate",
+		"author": "github.com/ejv2/gtemplate",
 		"date":   time.Time{},
 	})
 	HandleFunc("/temp.gohtml", func(path string) (map[string]interface{}, error) {

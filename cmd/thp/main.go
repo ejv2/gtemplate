@@ -14,7 +14,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/ethanv2/gtemplate"
+	"github.com/ejv2/gtemplate"
 )
 
 var (
